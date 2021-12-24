@@ -5,6 +5,7 @@ import com.ls.application.fund_strategy.dto.result.FundOperateRangeResult;
 import com.ls.application.fund_strategy.service.IOperateRangeService;
 import com.ls.common.basics.result.ApiResponse;
 import lombok.AllArgsConstructor;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -27,7 +28,7 @@ public class OperateRangeController {
      */
     @GetMapping("/getAll")
     public ApiResponse<List<FundOperateRangeResult>> getAll(){
-        return mOperateRangeService.getAll();
+        return ApiResponse.success(mOperateRangeService.getAll());
     }
 
     /**
@@ -37,7 +38,7 @@ public class OperateRangeController {
      * @return
      */
     @PutMapping("/addRange")
-    public ApiResponse<Boolean> addRange(FundOperateRangeParam fundOperateRangeParam){
+    public ApiResponse<Boolean> addRange(@Validated @RequestBody FundOperateRangeParam fundOperateRangeParam){
         return ApiResponse.success(mOperateRangeService.addRange(fundOperateRangeParam));
     }
 
@@ -48,7 +49,7 @@ public class OperateRangeController {
      * @return
      */
     @PutMapping("/updateRange")
-    public ApiResponse<Boolean> updateRange(FundOperateRangeParam fundOperateRangeParam){
+    public ApiResponse<Boolean> updateRange(@Validated @RequestBody FundOperateRangeParam fundOperateRangeParam){
         return ApiResponse.success(mOperateRangeService.updateRange(fundOperateRangeParam));
     }
 
@@ -72,7 +73,7 @@ public class OperateRangeController {
      */
     @PostMapping("/copyRangeTo")
     public ApiResponse<Boolean> copyRangeTo(
-            @RequestParam(name = "sourceFundId",required = false) Integer sourceFundId,
+            @RequestParam(name = "sourceFundId") Integer sourceFundId,
             @RequestParam("targetFundId") Integer targetFundId){
         return ApiResponse.success(mOperateRangeService.copyRangeTo(sourceFundId,targetFundId));
     }

@@ -1,5 +1,7 @@
 package com.ls.application.fund_strategy.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.ls.application.fund_strategy.dto.param.FundOperateRangeParam;
 import com.ls.application.fund_strategy.dto.result.FundOperateRangeResult;
 import com.ls.application.fund_strategy.mapper.HoldFundsMapper;
@@ -26,12 +28,12 @@ public class OperateRangeService extends SuperServiceImpl<OperateRangeMapper,Ope
     private HoldFundsMapper mHoldFundsMapper;
 
     @Override
-    public ApiResponse<List<FundOperateRangeResult>> getAll() {
+    public List<FundOperateRangeResult> getAll() {
         List<OperateRange> operateRanges = mOperateRangeMapper.findAll();
         List<FundOperateRangeResult> fundOperateRanges = new ArrayList<>();
         Map<Integer,List<OperateRange>> map = operateRanges.stream().collect(Collectors.groupingBy(OperateRange::getBelongToFund));
         if(map.size() <= 0){
-            return ApiResponse.success(fundOperateRanges);
+            return fundOperateRanges;
         }
 
         Map<Integer,HoldFunds> fundMap = mHoldFundsMapper.getFundsByIds(new ArrayList<>(map.keySet()))
@@ -54,7 +56,7 @@ public class OperateRangeService extends SuperServiceImpl<OperateRangeMapper,Ope
             fundOperateRanges.add(fundOperateRange);
         });
 
-        return ApiResponse.success(fundOperateRanges);
+        return fundOperateRanges;
     }
 
     @Override
@@ -116,13 +118,19 @@ public class OperateRangeService extends SuperServiceImpl<OperateRangeMapper,Ope
         return true;
     }
 
+    @Transactional
     @Override
     public Boolean copyRangeTo(Integer sourceFundId, Integer targetFundId) {
-        CopyRangeToParam param = new CopyRangeToParam();
-        param.setSourceFundId(sourceFundId);
-        param.setTargetFundId(targetFundId);
-        mOperateRangeMapper.copyRangeTo(param);
-        return  param.getState() == 1;
+        List<OperateRange> sourceRanges = lambdaQuery()
+                .eq(OperateRange::getBelongToFund,sourceFundId)
+                .list();
+        sourceRanges.forEach(operateRange -> operateRange.setBelongToFund(targetFundId));
+        LambdaQueryWrapper<OperateRange> deleteLqw = Wrappers.lambdaQuery();
+        remove(deleteLqw.eq(OperateRange::getBelongToFund,targetFundId));
+        if(!saveBatch(sourceRanges)){
+            throw new BizException("拷贝失败");
+        }
+        return true;
     }
 
     @Transactional
@@ -140,8 +148,10 @@ public class OperateRangeService extends SuperServiceImpl<OperateRangeMapper,Ope
             }
             range.setRangeSort(i + 1);
         }
-        updateBatchById(rangeMap.values());
-        return null;
+        if(!updateBatchById(rangeMap.values())){
+            throw new BizException("排序失败");
+        }
+        return true;
     }
 
     @Override

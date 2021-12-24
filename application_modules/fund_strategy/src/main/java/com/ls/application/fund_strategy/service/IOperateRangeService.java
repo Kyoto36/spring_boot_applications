@@ -7,7 +7,7 @@ import com.ls.common.basics.result.ApiResponse;
 import java.util.List;
 
 public interface IOperateRangeService {
-    ApiResponse<List<FundOperateRangeResult>> getAll();
+    List<FundOperateRangeResult> getAll();
 
     Boolean addRange(FundOperateRangeParam fundOperateRangeParam);
 
