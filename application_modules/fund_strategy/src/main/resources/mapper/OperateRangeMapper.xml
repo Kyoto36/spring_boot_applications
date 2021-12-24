@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ls.application.fund_strategy.mapper.OperateRangeMapper">
+    <select id="findAll" resultType="com.ls.application.fund_strategy.model.OperateRange">
+        SELECT * FROM operate_range
+    </select>
+
+    <select id="getHighestSortByFundId" resultType="int" parameterType="int">
+        SELECT `range_sort` FROM `operate_range` WHERE `belong_to_fund` = #{fundId} ORDER BY `range_sort` DESC LIMIT 1
+    </select>
+
+    <select id="getBelongToFundById" resultType="integer" parameterType="int">
+        SELECT `belong_to_fund` FROM `operate_range` WHERE `range_id` = #{rangeId}
+    </select>
+
+    <select id="existsRangeById" resultType="int" parameterType="int">
+        SELECT COUNT(1) FROM `operate_range` WHERE `range_id` = #{rangeId}
+    </select>
+
+    <update id="updateRange" parameterType="com.ls.application.fund_strategy.model.OperateRange">
+        UPDATE operate_range SET
+         upper_limit = #{upperLimit},lower_limit = #{lowerLimit},lower_rate = #{lowerRate},belong_to_fund = #{belongToFund}
+            WHERE range_id = #{rangeId}
+    </update>
+
+    <delete id="deleteRange" parameterType="int">
+        DELETE FROM `operate_range` WHERE `range_id` = #{rangeId}
+    </delete>
+
+    <select id="copyRangeTo" statementType="CALLABLE" parameterType="com.ls.application.fund_strategy.model.CopyRangeToParam">
+        {
+            CALL copy_range_to(
+                #{sourceFundId,mode=IN,jdbcType=INTEGER},
+                #{targetFundId,mode=IN,jdbcType=INTEGER},
+                #{state,mode=OUT,jdbcType=INTEGER}
+                )
+        }
+    </select>
+
+    <select id="testInsert" statementType="CALLABLE" parameterType="int">
+        {
+            CALL test_insert(
+                #{aaa,mode=IN,jdbcType=INTEGER}
+            )
+        }
+    </select>
+</mapper>
